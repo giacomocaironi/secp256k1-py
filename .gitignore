@@ -10,3 +10,5 @@ _libsecp256k1*
 *.egg
 htmlcov
 libsecp256k1
+wheelhouse/*
+.python-version

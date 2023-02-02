@@ -36,6 +36,7 @@ jobs:
             brew install automake
           CIBW_SKIP: "pp*"
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
+          name: wheels
           path: ./wheelhouse/*.whl

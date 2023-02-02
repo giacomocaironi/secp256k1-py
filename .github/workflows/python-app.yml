@@ -11,27 +11,44 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: Test on ${{ matrix.os }}, python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: 
+          - ubuntu-20.04
+# Windows is broken
+#          - windows-2019
+          - macOS-10.15
+        python:
+          - 3.8
+          - 3.9
+          - 3.10
+          - 3.11
+          - "pypy3.8"
+          - "pypy3.9"
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.9
+    - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: ${{ matrix.python }}
+  - name: Download wheels
+    uses: actions/download-artifact@v3
+    with:
+      name: wheels
+      path: ./wheels
     - name: Install dependencies
       run: |
-        sudo apt-get install build-essential automake pkg-config libtool libffi-dev
         python -m pip install --upgrade pip
-        pip install flake8 pytest wheel
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install flake8 pytest
     - name: Lint with flake8
       run: |
         flake8 . --count --show-source --statistics
     - name: Install self
       run: |
-        pip install .
+        pip install --find-links ./wheels secp256k1-py
     - name: Test with pytest
       run: |
         pytest
