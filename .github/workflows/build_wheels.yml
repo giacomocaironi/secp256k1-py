@@ -1,0 +1,49 @@
+name: Build wheels
+
+# on:
+#   push:
+#     branches: [ master ]
+#   pull_request:
+#     branches: [ master ]
+
+on: [push, pull_request]
+
+env:
+  # Use the `build` frontend instead of `pip` to allow in-tree
+  # builds (which `pip` will eventually migrate to as well).
+  CIBW_BUILD_FRONTEND: "build"
+  CIBW_BEFORE_ALL_LINUX: |
+    rm -rf build .eggs
+  CIBW_BEFORE_ALL_MACOS: |
+    rm -rf build .eggs
+    brew install automake
+  CIBW_SKIP: "pp*"
+  CIBW_TEST_REQUIRES: pytest
+  CIBW_TEST_COMMAND: "pytest {project}/tests"
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: 
+          - ubuntu-latest
+          - macOS-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v2
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.12.0
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: ./wheelhouse/*.whl
